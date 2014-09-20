@@ -12,6 +12,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -38,8 +41,8 @@ public class AntGame implements KeyListener, ActionListener {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
-        m_game = new Game(N, true);
+    public static void main(String[] args) throws IOException {
+        m_game = new Game(N, true, 1);
         new AntGame(m_game, 0);
     }
 
@@ -161,9 +164,13 @@ public class AntGame implements KeyListener, ActionListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
-        //System.out.println(e.getKeyChar());
+        try {
+            //System.out.println(e.getKeyChar());
 
-        m_game.move(e.getKeyChar());
+            m_game.move(e.getKeyChar());
+        } catch (Exception ex) {
+            Logger.getLogger(AntGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         showGame();
         showInfo();
 
@@ -176,7 +183,11 @@ public class AntGame implements KeyListener, ActionListener {
     public void actionPerformed(ActionEvent e) {
         m_gameFrame.setVisible(false);
         m_gameFrame.dispose();
-        m_game = new Game(N, false);
+        try {
+            m_game = new Game(N, false, 1);
+        } catch (IOException ex) {
+            Logger.getLogger(AntGame.class.getName()).log(Level.SEVERE, null, ex);
+        }
         new AntGame(m_game,++m_numGame);
     }
 }

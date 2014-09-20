@@ -90,5 +90,10 @@ public class Ant {
         
         return new Point(m_pos.getX()+row,m_pos.getY()+col);
     }
+    
+    public int getNumAttributes()
+    {
+        return (int) (Math.pow(2*m_fov+1, 2)-1);
+    }
 
 }
