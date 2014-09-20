@@ -77,5 +77,18 @@ public class Ant {
     public void moveRight() {
         m_pos.m_y++;
     }
+    
+    public Point see(int idx)
+    {
+        int size = 2*m_fov+1;
+        
+        if (idx >= Math.pow(size,2)/2)
+            idx++;
+        
+        int row = idx/size-m_fov;
+        int col = idx%size-m_fov;       
+        
+        return new Point(m_pos.getX()+row,m_pos.getY()+col);
+    }
 
 }

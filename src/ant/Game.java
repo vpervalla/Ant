@@ -42,26 +42,27 @@ public class Game {
     public void move(char key) {
         key = Character.toUpperCase(key);
 
+        saveStatus();
+
+        if (key != 'W' && key != 'A' && key != 'S' && key != 'D') {
+            key = moveAI1x2();
+        }
+
         switch (key) {
             case 'W':
-                saveStatus();
                 m_ant.moveUp();
                 break;
             case 'S':
-                saveStatus();
                 m_ant.moveDown();
                 break;
             case 'A':
-                saveStatus();
                 m_ant.moveLeft();
                 break;
             case 'D':
-                saveStatus();
                 m_ant.moveRight();
                 break;
             default:
-                moveAI10x1Bis();
-                return;
+                break;
         }
 
         saveMove(key);
@@ -96,7 +97,7 @@ public class Game {
     }
 
     private void initAnt() {
-        m_ant = new Ant(1);
+        m_ant = new Ant(2);
         boolean initDone = false;
 
         while (!initDone) {
@@ -272,49 +273,8 @@ public class Game {
 
     public int see(int idx) {
 
-        int nRow, nCol;
-
-        switch (idx) {
-            case 0:
-                nRow = -1;
-                nCol = -1;
-                break;
-            case 1:
-                nRow = -1;
-                nCol = 0;
-                break;
-            case 2:
-                nRow = -1;
-                nCol = +1;
-                break;
-            case 3:
-                nRow = 0;
-                nCol = -1;
-                break;
-            case 4:
-                nRow = 0;
-                nCol = +1;
-                break;
-            case 5:
-                nRow = +1;
-                nCol = -1;
-                break;
-            case 6:
-                nRow = +1;
-                nCol = 0;
-                break;
-            case 7:
-                nRow = +1;
-                nCol = +1;
-                break;
-            default:
-                nRow = 0;
-                nCol = 0;
-                break;
-        }
-
-        int row = m_ant.getX() + nRow;
-        int col = m_ant.getY() + nCol;
+        int row = m_ant.see(idx).getX();
+        int col = m_ant.see(idx).getY();
 
         if (outOfGrid(row, col)) {
             return -(m_dim + 2);
@@ -352,84 +312,70 @@ public class Game {
         if (see(7) <= VISITED) {
             key = 'W';
         } else {
-            if (see(2) <= VISITED) {
-                key = 'A';
+            if (see(6) <= EMPTY) {
+                key = 'D';
             } else {
                 key = 'S';
             }
         }
 
-        move(key);
         return key;
     }
 
-    private char moveAI10x1() {
+    private char moveAI5x1() {
 
         char key;
 
-        if (see(1) <= VISITED) {
-            if (see(6) <= VISITED) {
-                key = 'A';
+        if (see(1) <= EMPTY) {
+            if (see(4) <= VISITED) {
+                if (see(6) <= EMPTY) {
+                    if (see(0) <= EMPTY) {
+                        if (see(3) <= VISITED) {
+                            key = 'W';
+                        } else {
+                            key = 'A';
+                        }
+                    } else {
+                        key = 'W';
+                    }
+                } else {
+                    key = 'S';
+                }
             } else {
                 if (see(3) <= EMPTY) {
-                    if (see(2) <= EMPTY) {
-                        key = 'S';
+                    if (see(4) <= EMPTY) {
+                        if (see(0) <= VISITED) {
+                            key = 'S';
+                        } else {
+                            if (see(3) <= VISITED) {
+                                key = 'W';
+                            } else {
+                                if (see(2) <= EMPTY) {
+                                    if (see(6) <= VISITED) {
+                                        key = 'W';
+                                    } else {
+                                        key = 'S';
+                                    }
+                                } else {
+                                    key = 'D';
+                                }
+                            }
+                        }
                     } else {
-                        key = 'A';
+                        key = 'D';
                     }
                 } else {
                     key = 'A';
                 }
             }
         } else {
-            if (see(6) > EMPTY) {
-                key = 'S';
-            } else {
-                if (see(4) <= VISITED) {
-                    if (see(1) <= EMPTY) {
-                        if (see(5) <= VISITED) {
-                            key = 'W';
-                        } else {
-                            key = 'A';
-                        }
-                    } else {
-                        key = 'W';
-                    }
-                } else {
-                    if (see(6) <= VISITED) {
-                        if (see(3) <= EMPTY) {
-                            if (see(7) <= EMPTY) {
-                                if (see(4) <= EMPTY) {
-                                    key = 'W';
-                                } else {
-                                    key = 'D';
-                                }
-                            } else {
-                                key = 'D';
-                            }
-                        } else {
-                            key = 'A';
-                        }
-                    }
-                    if (see(1) <= EMPTY) {
-                        if (see(0) <= EMPTY) {
-                            key = 'D';
-                        } else {
-                            key = 'W';
-                        }
-                    } else {
-                        key = 'W';
-                    }
-
-                }
-            }
+            key = 'W';
         }
 
-        move(key);
         return key;
     }
 
-    private char moveAI10x1Bis() {
+    private char moveAI10x1() {
 
         char key;
 
@@ -495,7 +441,31 @@ public class Game {
             key = 'D';
         }
 
-        move(key);
+        return key;
+    }
+
+    private char moveAI1x2() {
+
+        char key;
+
+        if (see(4) <= OUTSIDE) {
+            key = 'S';
+        } else {
+            if (see(7) <= EMPTY) {
+                if (see(23) <= VISITED) {
+                    if (see(15) <= OUTSIDE) {
+                        key = 'A';
+                    } else {
+                        key = 'W';
+                    }
+                } else {
+                    key = 'A';
+                }
+            } else {
+                key = 'W';
+            }
+        }
+
         return key;
     }
 }
