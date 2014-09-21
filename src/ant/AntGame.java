@@ -28,8 +28,8 @@ import javax.swing.JLabel;
 public class AntGame implements KeyListener, ActionListener {
 
     private final static int N = 10;
-    private JFrame m_gameFrame;
-    private GridBagLayout m_gameLayout;
+    private final JFrame m_gameFrame;
+    private final GridBagLayout m_gameLayout;
     private JLabel m_scoreLabel;
     private JLabel m_foodLabel;
     private JLabel m_movesLabel;
@@ -46,10 +46,11 @@ public class AntGame implements KeyListener, ActionListener {
 
     /**
      * @param args the command line arguments
+     * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
         Game game = new Game(N, true, 1);
-        new AntGame(game, 0);
+        AntGame newGame = new AntGame(game, 0);
     }
 
     public AntGame(Game game, int numGame) {
@@ -66,7 +67,7 @@ public class AntGame implements KeyListener, ActionListener {
         initLabels();
         initButtons();
 
-        m_gameFrame.addKeyListener(this);
+        
         m_gameFrame.setFocusable(true);
         m_gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         m_gameFrame.pack();
@@ -150,7 +151,7 @@ public class AntGame implements KeyListener, ActionListener {
         } catch (IOException ex) {
             Logger.getLogger(AntGame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        new AntGame(m_game, ++m_numGame);
+        AntGame newGame = new AntGame(m_game, ++m_numGame);
     }
 
     private void initIcons() {
@@ -213,5 +214,6 @@ public class AntGame implements KeyListener, ActionListener {
         m_newGameButton.addActionListener(this);
         m_gameLayout.setConstraints(m_newGameButton, lim);
         m_gameFrame.add(m_newGameButton);
+        m_gameFrame.addKeyListener(this);
     }
 }

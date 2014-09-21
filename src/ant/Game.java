@@ -5,7 +5,6 @@
  */
 package ant;
 
-import com.sun.corba.se.impl.orbutil.DenseIntMapImpl;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,8 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import static java.lang.System.in;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,7 +46,7 @@ public class Game {
     private final WekaWrapper5x2 m_wrapper5x2;
     private final WekaWrapper10x2 m_wrapper10x2;
     private final WekaWrapper50x2 m_wrapper50x2;
-    private Instances m_data;
+    private final Instances m_data;
 
     public Game(int dim, boolean first, int fov) throws FileNotFoundException, IOException {
         m_dim = dim;
@@ -202,12 +199,10 @@ public class Game {
             writer.write("@ATTRIBUTE class\t{W,A,S,D}\n\n");
             writer.write("@DATA\n");
         } catch (Exception e) {
-            e.printStackTrace();
         } finally {
             try {
                 writer.close();
             } catch (Exception e) {
-
             }
         }
     }
@@ -275,27 +270,19 @@ public class Game {
     }
 
     private boolean outOfGrid(int row, int col) {
-        if (row < 0 || row >= m_dim) {
-            return true;
-        }
-
-        if (col < 0 || col >= m_dim) {
-            return true;
-        }
-
-        return false;
+        
+        return !(row >= 0 && row < m_dim && col >= 0 && col < m_dim);
     }
 
     public boolean isVisible(int row, int col) {
-        if (row < m_ant.getX() - m_ant.getFov() || row > m_ant.getX() + m_ant.getFov()) {
-            return false;
-        }
-
-        if (col < m_ant.getY() - m_ant.getFov() || col > m_ant.getY() + m_ant.getFov()) {
-            return false;
-        }
-
-        return true;
+        
+        int minX = m_ant.getX() - m_ant.getFov();
+        int minY = m_ant.getY() - m_ant.getFov();
+        
+        int maxX = m_ant.getX() + m_ant.getFov();
+        int maxY = m_ant.getY() + m_ant.getFov();
+        
+        return (row >= minX && row <= maxX && col >= minY && col <= maxY);
     }
 
     public int getValue(int row, int col) {
