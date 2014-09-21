@@ -28,13 +28,19 @@ import javax.swing.JLabel;
 public class AntGame implements KeyListener, ActionListener {
 
     private final static int N = 10;
-    private final JFrame m_gameFrame = new JFrame();
-    private final JLabel m_scoreLabel;
-    private final JLabel m_foodLabel;
-    private final JLabel m_movesLabel;
-    private final JLabel m_numGameLabel;
-    private final JButton[][] m_gameGrid;
-    private final JButton m_newGameButton;
+    private JFrame m_gameFrame;
+    private GridBagLayout m_gameLayout;
+    private JLabel m_scoreLabel;
+    private JLabel m_foodLabel;
+    private JLabel m_movesLabel;
+    private JLabel m_numGameLabel;
+    private JButton[][] m_gameGrid;
+    private JButton m_newGameButton;
+    private ImageIcon m_antIcon;
+    private ImageIcon m_grassIcon;
+    private ImageIcon m_groundIcon;
+    private ImageIcon m_fogIcon;
+    private ImageIcon m_foodIcon;
     private static Game m_game;
     private int m_numGame;
 
@@ -42,76 +48,30 @@ public class AntGame implements KeyListener, ActionListener {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        m_game = new Game(N, true, 1);
-        new AntGame(m_game, 0);
+        Game game = new Game(N, true, 1);
+        new AntGame(game, 0);
     }
 
     public AntGame(Game game, int numGame) {
-        
+
+        m_game = game;
         m_numGame = numGame;
-        
-        int rows = game.getDim();
-        int cols = game.getDim();
 
-        GridBagLayout gameLayout = new GridBagLayout();
+        m_gameFrame = new JFrame("Ant Game");
+        m_gameLayout = new GridBagLayout();
+        m_gameFrame.setLayout(m_gameLayout);
 
-        m_gameFrame.setLayout(gameLayout);
-        GridBagConstraints lim = new GridBagConstraints();
-
-        m_gameGrid = new JButton[rows][cols];
-
-        for (int i = 0; i < rows; ++i) {
-            for (int j = 0; j < cols; ++j) {
-                m_gameGrid[i][j] = new JButton(iconFromGame(i, j));
-                m_gameGrid[i][j].setPreferredSize(new Dimension(60, 60));
-                lim.gridx = j;
-                lim.gridy = i;
-                gameLayout.setConstraints(m_gameGrid[i][j], lim);
-                m_gameFrame.add(m_gameGrid[i][j]);
-            }
-        }
-
-        int pos = 0;
-        
-        m_scoreLabel = new JLabel("Punteggio: " + m_game.getScore());
-        lim.gridx = game.getDim();
-        lim.gridy = pos++;
-        gameLayout.setConstraints(m_scoreLabel, lim);
-        m_gameFrame.add(m_scoreLabel);
-
-        m_foodLabel = new JLabel("Cibo disponibile: " + m_game.foodAvailable());
-        lim.gridx = game.getDim();
-        lim.gridy = pos++;
-        gameLayout.setConstraints(m_foodLabel, lim);
-        m_gameFrame.add(m_foodLabel);
-
-        m_movesLabel = new JLabel("Mosse rimanenti: " + m_game.movesAvailable());
-        lim.gridx = game.getDim();
-        lim.gridy = pos++;
-        gameLayout.setConstraints(m_movesLabel, lim);
-        m_gameFrame.add(m_movesLabel);
-        
-        m_numGameLabel = new JLabel("Partite giocate: " + m_numGame);
-        lim.gridx = game.getDim();
-        lim.gridy = pos++;
-        gameLayout.setConstraints(m_numGameLabel, lim);
-        m_gameFrame.add(m_numGameLabel);
-
-        m_newGameButton = new JButton("Nuovo gioco");
-        lim.gridx = game.getDim();
-        lim.gridy = pos++;
-        m_newGameButton.addActionListener(this);
-        gameLayout.setConstraints(m_newGameButton, lim);
-        m_gameFrame.add(m_newGameButton);
+        initIcons();
+        initGrid(m_game.getDim(), m_game.getDim());
+        initLabels();
+        initButtons();
 
         m_gameFrame.addKeyListener(this);
         m_gameFrame.setFocusable(true);
-
         m_gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         m_gameFrame.pack();
         m_gameFrame.setVisible(true);
-        
-        
+
     }
 
     public void showGame() {
@@ -134,22 +94,24 @@ public class AntGame implements KeyListener, ActionListener {
     private Icon iconFromGame(int row, int col) {
 
         if (m_game.isAnt(row, col)) {
-            return new ImageIcon("ant.png");
+            return m_antIcon;
         }
 
         if (!m_game.isVisible(row, col) && !m_game.isOver()) {
-            return new ImageIcon("fog.png");
+            return m_fogIcon;
+
         } else {
             switch (m_game.getValue(row, col)) {
                 case Game.EMPTY:
-                    return new ImageIcon("grass.png");
+                    return m_grassIcon;
                 case Game.VISITED:
-                    return new ImageIcon("ground.png");
+                    return m_groundIcon;
                 case Game.FOOD:
-                    return new ImageIcon("food.png");
+                    return m_foodIcon;
+                default:
+                    return m_groundIcon;
             }
         }
-        return new ImageIcon("ground.png");
     }
 
     @Override
@@ -188,6 +150,68 @@ public class AntGame implements KeyListener, ActionListener {
         } catch (IOException ex) {
             Logger.getLogger(AntGame.class.getName()).log(Level.SEVERE, null, ex);
         }
-        new AntGame(m_game,++m_numGame);
+        new AntGame(m_game, ++m_numGame);
+    }
+
+    private void initIcons() {
+        m_antIcon = new ImageIcon("ant.png");
+        m_grassIcon = new ImageIcon("grass.png");
+        m_groundIcon = new ImageIcon("ground.png");
+        m_fogIcon = new ImageIcon("fog.png");
+        m_foodIcon = new ImageIcon("food.png");
+    }
+
+    private void initGrid(int rows, int cols) {
+
+        GridBagConstraints lim = new GridBagConstraints();
+
+        m_gameGrid = new JButton[rows][cols];
+
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                m_gameGrid[i][j] = new JButton(iconFromGame(i, j));
+                m_gameGrid[i][j].setPreferredSize(new Dimension(60, 60));
+                lim.gridx = j;
+                lim.gridy = i;
+                m_gameLayout.setConstraints(m_gameGrid[i][j], lim);
+                m_gameFrame.add(m_gameGrid[i][j]);
+            }
+        }
+    }
+
+    private void initLabels() {
+        GridBagConstraints lim = new GridBagConstraints();
+
+        m_scoreLabel = new JLabel("Punteggio: " + m_game.getScore());
+        lim.gridx = m_game.getDim();
+        lim.gridy = 0;
+        m_gameLayout.setConstraints(m_scoreLabel, lim);
+        m_gameFrame.add(m_scoreLabel);
+
+        m_foodLabel = new JLabel("Cibo disponibile: " + m_game.foodAvailable());
+        ++lim.gridy;
+        m_gameLayout.setConstraints(m_foodLabel, lim);
+        m_gameFrame.add(m_foodLabel);
+
+        m_movesLabel = new JLabel("Mosse rimanenti: " + m_game.movesAvailable());
+        ++lim.gridy;
+        m_gameLayout.setConstraints(m_movesLabel, lim);
+        m_gameFrame.add(m_movesLabel);
+
+        m_numGameLabel = new JLabel("Partite giocate: " + m_numGame);
+        ++lim.gridy;
+        m_gameLayout.setConstraints(m_numGameLabel, lim);
+        m_gameFrame.add(m_numGameLabel);
+    }
+
+    private void initButtons() {
+        GridBagConstraints lim = new GridBagConstraints();
+        
+        m_newGameButton = new JButton("Nuovo gioco");
+        lim.gridx = m_game.getDim();
+        lim.gridy = 4;
+        m_newGameButton.addActionListener(this);
+        m_gameLayout.setConstraints(m_newGameButton, lim);
+        m_gameFrame.add(m_newGameButton);
     }
 }

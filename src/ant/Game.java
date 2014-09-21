@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.io.Reader;
 import static java.lang.System.in;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Attribute;
@@ -71,33 +73,13 @@ public class Game {
         m_wrapper50x2 = new WekaWrapper50x2();
     }
 
-    public void move(char key) throws Exception {
+    public void move(char key) {
         key = Character.toUpperCase(key);
 
         saveStatus();
 
         if (key != W && key != A && key != S && key != D) {
-            Instance i = new Instance(m_ant.getNumAttributes() + 1);
-            i.setDataset(m_data);
-            for (int j = 0; j < i.numAttributes() - 1; ++j) {
-                i.setValue(new Attribute(Integer.toString(j), j), see(j));
-            }
-
-            i.setClassValue(1);
-            double p = m_wrapper10x1.classifyInstance(i);
-
-            if (p == 0.0) {
-                key = W;
-            } else if (p == 1.0) {
-                key = A;
-            } else if (p == 2.0) {
-                key = S;
-            } else if (p == 3.0) {
-                key = D;
-            } else {
-                System.err.println("Unexpected classifier output!");
-                return;
-            }
+            key = keyFromWeka(0);
         }
 
         switch (key) {
@@ -357,367 +339,43 @@ public class Game {
         return m_moves;
     }
 
-    private char moveAI1x1() {
+    // TODO: classifier might be set to specify which classifier has to be used
+    private char keyFromWeka(int classifier) {
+        
+        char key = W;
+        
+        Instance i = new Instance(m_ant.getNumAttributes() + 1);
+        i.setDataset(m_data);
+        for (int j = 0; j < i.numAttributes() - 1; ++j) {
+            i.setValue(new Attribute(Integer.toString(j), j), see(j));
+        }
 
-        char key;
+        i.setClassValue(1);
+        double p = -1;
+        try {
+            p = m_wrapper10x1.classifyInstance(i);
+        } catch (Exception ex) {
+            Logger.getLogger(Game.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
-        if (see(7) <= VISITED) {
-            key = W;
-        } else {
-            if (see(6) <= EMPTY) {
-                key = D;
-            } else {
+        switch ((int)p){
+            case 0:
+                key = W;
+                break;
+            case 1:
+                key = A;
+                break;
+            case 2:
                 key = S;
-            }
+                break;
+            case 3:
+                key = D;
+                break;
+            default:
+                System.err.println("Unexpected classifier output!");
+                break;
         }
-
-        return key;
-    }
-
-    private char moveAI5x1() {
-
-        char key;
-
-        if (see(1) <= EMPTY) {
-            if (see(4) <= VISITED) {
-                if (see(6) <= EMPTY) {
-                    if (see(0) <= EMPTY) {
-                        if (see(3) <= VISITED) {
-                            key = W;
-                        } else {
-                            key = A;
-                        }
-                    } else {
-                        key = W;
-                    }
-                } else {
-                    key = S;
-                }
-            } else {
-                if (see(3) <= EMPTY) {
-                    if (see(4) <= EMPTY) {
-                        if (see(0) <= VISITED) {
-                            key = S;
-                        } else {
-                            if (see(3) <= VISITED) {
-                                key = W;
-                            } else {
-                                if (see(2) <= EMPTY) {
-                                    if (see(6) <= VISITED) {
-                                        key = W;
-                                    } else {
-                                        key = S;
-                                    }
-                                } else {
-                                    key = D;
-                                }
-                            }
-                        }
-                    } else {
-                        key = D;
-                    }
-                } else {
-                    key = A;
-                }
-            }
-        } else {
-            key = W;
-        }
-
-        return key;
-    }
-
-    private char moveAI10x1() {
-
-        char key;
-
-        if (see(4) <= EMPTY) {
-            if (see(6) <= VISITED) {
-                if (see(1) <= VISITED) {
-                    if (see(3) <= VISITED) {
-                        key = D;
-                    } else {
-                        key = A;
-                    }
-                } else {
-                    if (see(3) <= EMPTY) {
-                        key = W;
-                    } else {
-                        key = A;
-                    }
-                }
-            } else {
-                if (see(1) <= EMPTY) {
-                    if (see(3) <= VISITED) {
-                        if (see(1) <= VISITED) {
-                            key = S;
-                        } else {
-                            if (see(5) <= VISITED) {
-                                key = W;
-                            } else {
-                                if (see(2) <= EMPTY) {
-                                    key = S;
-                                } else {
-                                    key = D;
-                                }
-                            }
-                        }
-                    } else {
-                        if (see(4) <= VISITED) {
-                            if (see(6) <= EMPTY) {
-                                if (see(5) <= EMPTY) {
-                                    key = A;
-                                } else {
-                                    key = S;
-                                }
-                            } else {
-                                key = S;
-                            }
-                        } else {
-                            if (see(3) <= EMPTY) {
-                                if (see(0) <= EMPTY) {
-                                    key = S;
-                                } else {
-                                    key = A;
-                                }
-                            } else {
-                                key = A;
-                            }
-                        }
-                    }
-                } else {
-                    key = W;
-                }
-            }
-        } else {
-            key = D;
-        }
-
-        return key;
-    }
-
-    private char moveAI1x2() {
-
-        char key;
-
-        if (see(4) <= OUTSIDE) {
-            key = S;
-        } else {
-            if (see(7) <= EMPTY) {
-                if (see(23) <= VISITED) {
-                    if (see(15) <= OUTSIDE) {
-                        key = A;
-                    } else {
-                        key = W;
-                    }
-                } else {
-                    key = A;
-                }
-            } else {
-                key = W;
-            }
-        }
-
-        return key;
-    }
-
-    private char moveAI5x2() {
-
-        char key;
-
-        if (see(16) <= EMPTY) {
-            if (see(7) <= EMPTY) {
-                if (see(11) <= VISITED) {
-                    if (see(9) <= OUTSIDE) {
-                        key = W;
-                    } else {
-                        key = S;
-                    }
-                } else {
-                    if (see(13) <= EMPTY) {
-                        if (see(12) <= EMPTY) {
-                            if (see(21) <= EMPTY) {
-                                if (see(7) <= VISITED) {
-                                    if (see(18) <= OUTSIDE) {
-                                        if (see(3) <= VISITED) {
-                                            key = A;
-                                        } else {
-                                            if (see(11) <= EMPTY) {
-                                                key = S;
-                                            } else {
-                                                key = A;
-                                            }
-                                        }
-                                    } else {
-                                        if (see(6) <= VISITED) {
-                                            key = D;
-                                        } else {
-                                            key = S;
-                                        }
-                                    }
-                                }
-                                if (see(5) <= OUTSIDE) {
-                                    key = D;
-                                } else {
-                                    if (see(15) <= VISITED) {
-                                        if (see(3) <= VISITED) {
-                                            key = A;
-                                        } else {
-                                            key = W;
-                                        }
-                                    } else {
-                                        key = A;
-                                    }
-                                }
-                            } else {
-                                key = S;
-                            }
-                        } else {
-                            key = D;
-                        }
-                    } else {
-                        key = D;
-                    }
-                }
-            } else {
-                key = W;
-            }
-        } else {
-            key = S;
-        }
-
-        return key;
-    }
-
-    private char moveAI10x2() {
-
-        char key;
-
-        if (see(12) <= EMPTY) {
-            if (see(16) <= VISITED) {
-                if (see(13) <= EMPTY) {
-                    if (see(6) <= VISITED) {
-                        if (see(2) <= VISITED) {
-                            key = A;
-                        } else {
-                            if (see(6) <= OUTSIDE) {
-                                if (see(18) <= VISITED) {
-                                    key = W;
-                                } else {
-                                    key = D;
-                                }
-                            } else {
-                                key = D;
-                            }
-                        }
-                    } else {
-                        if (see(12) <= VISITED) {
-                            key = A;
-                        } else {
-                            key = W;
-                        }
-                    }
-                } else {
-                    key = D;
-                }
-            } else {
-                if (see(2) <= EMPTY) {
-                    if (see(7) <= EMPTY) {
-                        if (see(16) <= EMPTY) {
-                            if (see(11) <= VISITED) {
-                                if (see(8) <= EMPTY) {
-                                    if (see(21) <= EMPTY) {
-                                        if (see(13) <= VISITED) {
-                                            key = W;
-                                        } else {
-                                            if (see(6) <= VISITED) {
-                                                key = D;
-                                            } else {
-                                                if (see(19) <= VISITED) {
-                                                    key = D;
-                                                } else {
-                                                    key = S;
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        key = S;
-                                    }
-                                } else {
-                                    key = W;
-                                }
-                            } else {
-                                if (see(5) <= EMPTY) {
-                                    if (see(20) <= OUTSIDE) {
-                                        if (see(12) <= VISITED) {
-                                            key = A;
-                                        } else {
-                                            key = D;
-                                        }
-                                    } else {
-                                        if (see(11) <= EMPTY) {
-                                            if (see(21) <= EMPTY) {
-                                                if (see(15) < EMPTY) {
-                                                    if (see(3) <= OUTSIDE) {
-                                                        key = S;
-                                                    } else {
-                                                        if (see(12) <= VISITED) {
-                                                            key = A;
-                                                        } else {
-                                                            if (see(17) <= EMPTY) {
-                                                                if (see(9) <= VISITED) {
-                                                                    key = A;
-                                                                } else {
-                                                                    if (see(2) <= VISITED) {
-                                                                        if (see(20) <= EMPTY) {
-                                                                            if (see(1) <= VISITED) {
-                                                                                key = A;
-                                                                            } else {
-                                                                                key = S;
-                                                                            }
-                                                                        } else {
-                                                                            key = A;
-                                                                        }
-                                                                    } else {
-                                                                        key = S;
-                                                                    }
-                                                                }
-                                                            } else {
-                                                                key = S;
-                                                            }
-                                                        }
-                                                    }
-                                                } else {
-                                                    key = A;
-                                                }
-                                            } else {
-                                                key = S;
-                                            }
-                                        } else {
-                                            key = A;
-                                        }
-                                    }
-                                }
-                                if (see(9) <= VISITED) {
-                                    key = A;
-                                } else {
-                                    key = W;
-                                }
-                            }
-                        } else {
-                            key = S;
-                        }
-                    } else {
-                        key = W;
-                    }
-                } else {
-                    key = W;
-                }
-            }
-        } else {
-            key = D;
-        }
-
+        
         return key;
     }
 }
